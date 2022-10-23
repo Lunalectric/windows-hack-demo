@@ -1,4 +1,4 @@
-# DOD Amsterdam Hacklab
+# Windows Hack Demo
 
 This folder contains Terraform automation code to provision the following:
 
@@ -28,9 +28,9 @@ Before provisioning set the following environment variables:
 Open a terminal and run the following commands:
 
 ```bash
-export TF_VAR_region=eu-central-1
+export TF_VAR_region=us-east-1
 
-export TF_VAR_demo_name=dod-amsterdam
+export TF_VAR_demo_name=patrick
 
 export TF_VAR_ssh_key=patrick-key
 
@@ -44,7 +44,7 @@ export TF_VAR_publicIP="1.1.1.1/32"
 git clone git@github.com:Lunalectric/windows-hack-demo.git
 ```
 
-2. cd into the dod-amsterdam-hacklab folder
+2. cd into the windows-hack-demo folder
 ```
 cd windows-hack-demo
 ```
@@ -70,7 +70,21 @@ terraform apply -auto-approve
 Once the provisioning completes you will see something like this:
 
 ```bash
+Apply complete! Resources: 30 added, 0 changed, 0 destroyed.
 
+Outputs:
+
+hack_write_up = <<EOT
+# Hack Windows machine
+
+- login to your Kali machine
+........
+```
+
+6. Create Hacking Write-up
+
+```bash
+terraform output | sed "/^EOT/c\ " | sed "/hack_write_up = <<EOT/c\ " | sed 's/\\{/{/g' | sed 's/\\}/}/g' > hack-write-up.md
 ```
 
 ## Destroy a single environment
