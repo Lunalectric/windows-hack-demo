@@ -99,11 +99,11 @@ resource "aws_iam_role_policy_attachment" "dev-resources-ssm-policy" {
 
 data "aws_ami" "kali_linux" {
   most_recent = true
-  owners      = ["679593333241", "769304176199"]
+  owners      = ["679593333241"]
 
   filter {
     name   = "name"
-    values = ["kali-linux-2022.*"]
+    values = ["kali-last-snapshot-amd64-2022.*"]
   }
 
   filter {
